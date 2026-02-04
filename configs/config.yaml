@@ -1,11 +1,17 @@
 data:
   window_size: 101
+  processed_dir: "processed_data"
 
 train:
   batch_size: 64
   lr: 0.0001
   epochs: 30
+  dropout: 0.3
 
 model:
-  channels: 64
-  kernel_size: 7
+  d_model: 64         # Dimensionality of the model (Paper: 64 channels)
+  n_layers: 2         # Stack depth (Paper implies stacked design, usually 2-4)
+  n_classes: 1        # Binary classification
+  d_state: 16         # SSM state dimension
+  expand: 2           # Mamba block expansion factor
+  kernel_size: 7      # Conv1D Kernel size (Paper: "6-10 bp", kernel 7 selected)

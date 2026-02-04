@@ -1,28 +1,93 @@
 import yaml
 import torch
+import torch.nn as nn
 from torch.utils.data import DataLoader, TensorDataset
 from model.viper import VIPER
+from utils import compute_metrics, set_seed
+import os
+from tqdm import tqdm
 
-cfg = yaml.safe_load(open("configs/config.yaml"))
+def load_data(split_path, batch_size):
+    X, y = torch.load(split_path)
+    # Ensure y is [Batch, 1]
+    if len(y.shape) == 1:
+        y = y.unsqueeze(1)
+    dataset = TensorDataset(X, y)
+    shuffle = "train" in split_path
+    return DataLoader(dataset, batch_size=batch_size, shuffle=shuffle, num_workers=2)
 
-X = torch.randn(1000, 101, 4)
-y = torch.randint(0, 2, (1000, 1)).float()
+def main():
+    # Load Config
+    with open("configs/config.yaml") as f:
+        cfg = yaml.safe_load(f)
 
-ds = TensorDataset(X, y)
-dl = DataLoader(ds, batch_size=cfg["train"]["batch_size"], shuffle=True)
+    # Reproducibility
+    set_seed(42)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Using device: {device}")
 
-model = VIPER(cfg["model"]["channels"])
-opt = torch.optim.Adam(model.parameters(), lr=cfg["train"]["lr"])
-loss_fn = torch.nn.BCELoss()
+    # Load Data
+    data_dir = cfg['data']['processed_dir']
+    train_dl = load_data(os.path.join(data_dir, "train.pt"), cfg['train']['batch_size'])
+    val_dl = load_data(os.path.join(data_dir, "val.pt"), cfg['train']['batch_size'])
 
-for epoch in range(cfg["train"]["epochs"]):
-    for xb, yb in dl:
-        pred = model(xb)
-        loss = loss_fn(pred, yb)
-        opt.zero_grad()
-        loss.backward()
-        opt.step()
+    # Initialize Model
+    model = VIPER(cfg).to(device)
+    optimizer = torch.optim.Adam(model.parameters(), lr=cfg['train']['lr'])
+    criterion = nn.BCELoss()
 
-    print(f"Epoch {epoch} | Loss {loss.item():.4f}")
+    best_f1 = 0.0
+    
+    print("Starting Training...")
+    for epoch in range(cfg['train']['epochs']):
+        # --- Training Loop ---
+        model.train()
+        train_loss = 0
+        for X_batch, y_batch in tqdm(train_dl, desc=f"Epoch {epoch+1} [Train]", leave=False):
+            X_batch, y_batch = X_batch.to(device), y_batch.to(device)
+            
+            optimizer.zero_grad()
+            preds = model(X_batch)
+            loss = criterion(preds, y_batch)
+            loss.backward()
+            optimizer.step()
+            
+            train_loss += loss.item()
+        
+        avg_train_loss = train_loss / len(train_dl)
 
-torch.save(model.state_dict(), "viper.pt")
+        # --- Validation Loop ---
+        model.eval()
+        val_loss = 0
+        all_preds = []
+        all_labels = []
+        
+        with torch.no_grad():
+            for X_batch, y_batch in tqdm(val_dl, desc=f"Epoch {epoch+1} [Val]", leave=False):
+                X_batch, y_batch = X_batch.to(device), y_batch.to(device)
+                
+                preds = model(X_batch)
+                loss = criterion(preds, y_batch)
+                val_loss += loss.item()
+                
+                all_preds.append(preds.cpu())
+                all_labels.append(y_batch.cpu())
+        
+        avg_val_loss = val_loss / len(val_dl)
+        
+        # Compute Metrics
+        all_preds = torch.cat(all_preds).numpy()
+        all_labels = torch.cat(all_labels).numpy()
+        acc, prec, rec, f1 = compute_metrics(all_labels, all_preds)
+
+        print(f"Epoch {epoch+1:02d} | Train Loss: {avg_train_loss:.4f} | Val Loss: {avg_val_loss:.4f}")
+        print(f"           | Acc: {acc:.4f} | Prec: {prec:.4f} | Rec: {rec:.4f} | F1: {f1:.4f}")
+
+        # Checkpoint
+        if f1 > best_f1:
+            best_f1 = f1
+            torch.save(model.state_dict(), "weights/viper_best.pth")
+            print(">>> New Best Model Saved!")
+
+if __name__ == "__main__":
+    main()

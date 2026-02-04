@@ -1,7 +1,9 @@
-torch>=2.1
+torch>=2.1.0
 numpy
 pandas
 scikit-learn
 pyyaml
 tqdm
 pysam
+mamba-ssm>=1.0.1
+causal-conv1d>=1.0.0
