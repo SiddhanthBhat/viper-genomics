@@ -1,0 +1,11 @@
+data:
+  window_size: 101
+
+train:
+  batch_size: 64
+  lr: 0.0001
+  epochs: 30
+
+model:
+  channels: 64
+  kernel_size: 7
