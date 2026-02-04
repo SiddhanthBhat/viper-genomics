@@ -34,10 +34,10 @@ VIPER integrates local and global sequence modeling through a stacked hybrid des
 - **Dense classification head** performs binary mutation prediction
 
 <p align="center">
-  <img src="figures/model_architecture.pdf" width="800">
+  <img src="figures/model-1.png" width="800">
 </p>
 
-*Figure: Model Architecture showcasing Variational Inference integrated with State Space Models for pattern extraction and recognition in genome sequences.*
+*Figure 1: Model architecture showcasing Variational Inference integrated with State Space Models for pattern extraction and recognition in genome sequences.*
 
 ---
 
@@ -75,10 +75,10 @@ Random seeds are varied across runs to ensure statistical robustness.
 ## Performance Metrics
 
 <p align="center">
-  <img src="figures/metrics_grid.pdf" width="900">
+  <img src="figures/metrics grid-1.png" width="900">
 </p>
 
-*Figure: Loss, Accuracy, Validation Loss, Validation Accuracy, Precision, Recall, F1 Score, AUC-ROC, and AUC-PR.*
+*Figure 2: Training and validation metrics including loss, accuracy, precision, recall, F1 score, AUC-ROC, and AUC-PR.*
 
 ---
 
@@ -91,10 +91,10 @@ To assess architectural contributions, we evaluate:
 - Full VIPER (hybrid)
 
 <p align="center">
-  <img src="figures/ablation_f1.png" width="600">
+  <img src="figures/ablation_study.png" width="600">
 </p>
 
-*Figure: F1-score comparison showing the performance gain from hybrid integration.*
+*Figure 3: Ablation results showing the F1-score contribution of individual modules.*
 
 ---
 
@@ -103,32 +103,44 @@ To assess architectural contributions, we evaluate:
 VIPER is compared against BERT, HyenaDNA, and S4 across accuracy, precision, recall, and runtime.
 
 <p align="center">
-  <img src="figures/runtime_comparison.png" width="600">
+  <img src="figures/bar_runtime_adj.png" width="550">
 </p>
+
+*Figure 4: Runtime per epoch comparison across models.*
 
 <p align="center">
-  <img src="figures/recall_comparison.png" width="600">
+  <img src="figures/bar_recall_adj.png" width="550">
 </p>
+
+*Figure 5: Recall comparison across models.*
 
 <p align="center">
-  <img src="figures/precision_comparison.png" width="600">
+  <img src="figures/bar_precision_adj.png" width="550">
 </p>
+
+*Figure 6: Precision comparison across models.*
 
 <p align="center">
-  <img src="figures/accuracy_comparison.png" width="600">
+  <img src="figures/bar_accuracy_adj.png" width="550">
 </p>
 
-These results demonstrate that VIPER achieves **higher accuracy and recall** while maintaining **lower runtime per epoch**, making it suitable for genome-wide analysis.
+*Figure 7: Accuracy comparison across models.*
 
 ---
 
-## Scaling Behavior
+## Scaling Behaviour
 
 <p align="center">
   <img src="figures/length_sensitivity.png" width="650">
 </p>
 
-*Figure: Model accuracy across increasing genomic context windows, highlighting VIPER’s stability for long sequences.*
+*Figure 8: Model accuracy across increasing genomic context windows, demonstrating VIPER’s stability for long sequences.*
+
+<p align="center">
+  <img src="figures/runtime_scaling.png" width="650">
+</p>
+
+*Figure 9: Computational scaling comparison showing linear-time behavior of VIPER.*
 
 ---
 
@@ -138,7 +150,7 @@ These results demonstrate that VIPER achieves **higher accuracy and recall** whi
   <img src="figures/confusion_matrix.png" width="450">
 </p>
 
-*Figure: Normalized confusion matrix showing a low false-negative rate, critical for clinical screening.*
+*Figure 10: Normalized confusion matrix indicating a low false-negative rate, critical for clinical screening.*
 
 ---
 
